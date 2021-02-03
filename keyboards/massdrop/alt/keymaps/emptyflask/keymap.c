@@ -114,7 +114,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         KC_ESC,  KC_F1,   KC_F2,   KC_F3,   KC_F4,   KC_F5,   KC_F6,   KC_F7,   KC_F8,   KC_F9,   KC_F10,  KC_F11,  KC_F12,  KC_DEL,  KC_END,
         _______, RGB_SPD, RGB_VAI, RGB_SPI, RGB_HUI, RGB_SAI, _______, U_T_AUTO,U_T_AGCR,_______, KC_PSCR, KC_SLCK, KC_PAUS, TG_NUMP, KC_MUTE,
         KC_CAPS, RGB_RMOD,RGB_VAD, RGB_MOD, RGB_HUD, RGB_SAD, _______, _______, _______, MD_LOCK, _______, _______,          _______, KC_VOLU,
-        _______, RGB_TOG, _______, _______, _______, RESET,   NK_TOGG, DBG_TOG, _______, _______, OSL_LAY, _______,          KC_PGUP, KC_VOLD,
+        _______, RGB_TOG, _______, _______, _______, MD_BOOT, NK_TOGG, DBG_TOG, _______, _______, OSL_LAY, _______,          KC_PGUP, KC_VOLD,
         _______, _______, _______,                            HK_COSL,                            _______, _______, KC_HOME, KC_PGDN, KC_END
     ),
 
@@ -193,8 +193,12 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 #define MODS_SHIFT  (get_mods() & MOD_MASK_SHIFT)
 #define MODS_CTRL  (get_mods() & MOD_MASK_CTRL)
 
+bool rgbkeyIdle = false; // flag for keyboard idling, nil keys for set
+static uint32_t idle_timer; // custom timer to check if keyboard is idled.
+
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     static uint32_t key_timer;
+    idle_timer = timer_read();
 
     switch (keycode) {
         case QWERTY:
@@ -287,6 +291,32 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             }
             return false;
         default:
+             if (rgbkeyIdle) {       // check if the keyboards already idle and if it is, turn it back on as key is pressed.
+                rgbkeyIdle = false;
+                rgb_matrix_set_suspend_state(false);
+                rgb_matrix_enable_noeeprom();
+            }
             return true; //Process all other keycodes normally
     }
+}
+
+#define IDLE_TIMER_DURATION 18000000 // how many milliseconds before RGB turns off
+
+void matrix_scan_user(void) {
+// custom idle rbg switch off function
+    if (timer_elapsed(idle_timer) > IDLE_TIMER_DURATION) {
+        idle_timer = 0;
+        timer_clear();
+        rgbkeyIdle = true;
+        rgb_matrix_set_suspend_state(true);
+        rgb_matrix_disable_noeeprom();
+    }
+}
+
+void suspend_power_down_user(void) {
+    rgb_matrix_set_suspend_state(true);
+}
+
+void suspend_wakeup_init_user(void) {
+    rgb_matrix_set_suspend_state(false);
 }
