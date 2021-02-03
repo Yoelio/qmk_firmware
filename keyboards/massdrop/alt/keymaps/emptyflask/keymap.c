@@ -1,5 +1,18 @@
 #include QMK_KEYBOARD_H
 
+#ifdef RGB_MATRIX_ENABLE
+#ifdef SLEEPMODE_ENABLE
+    /* A bunch of vars to keep track of the rgb states
+       before sleepmode is turned on */
+    static bool sleepmode_on = false;
+    static uint8_t sleepmode_before_mode = -1;
+    static uint8_t sleepmode_before_brightness = -1;
+    static uint8_t sleepmode_before_anim_speed = -1;
+    static uint8_t halfmin_counter = 0;
+    static uint16_t idle_timer = 0;
+#endif
+#endif
+
 enum my_keycodes {
     U_T_AUTO = SAFE_RANGE, // USB Extra Port Toggle Auto Detect / Always Active
     U_T_AGCR,              // USB Toggle Automatic GCR control
@@ -121,32 +134,32 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     /* Number pad (FN-\ to toggle)
      * ┌───────┬───────┬───────┬───────┬───────┬───────┬───────┬───────┬───────┬───────┬───────┬───────┬───────┬────────────┬───────┐
      * │       │       │       │       │       │       │       │       │       │       │       │       │       │            │       │
-     * │       │       │       │       │       │       │       │       │   /   │   *   │   -   │       │       │            │       │
+     * │       │       │       │       │       │       │       │   7   │   8   │   9   │   /   │       │       │            │       │
      * │       │       │       │       │       │       │       │       │       │       │       │       │       │            │       │
      * ├───────┴──┬────┴──┬────┴──┬────┴──┬────┴──┬────┴──┬────┴──┬────┴──┬────┴──┬────┴──┬────┴──┬────┴──┬────┴──┬─────────┼───────┤
      * │          │       │       │       │       │       │       │       │       │       │       │       │       │         │       │
-     * │          │       │       │       │       │       │       │   7   │   8   │   9   │   +   │       │       │         │       │
+     * │          │       │       │       │       │       │       │   4   │   5   │   6   │   *   │       │       │         │       │
      * │          │       │       │       │       │       │       │       │       │       │       │       │       │         │       │
      * ├──────────┴─┬─────┴─┬─────┴─┬─────┴─┬─────┴─┬─────┴─┬─────┴─┬─────┴─┬─────┴─┬─────┴─┬─────┴─┬─────┴─┬─────┴─────────┼───────┤
      * │            │       │       │       │       │       │       │       │       │       │       │       │               │       │
-     * │            │       │       │       │       │       │       │   4   │   5   │   6   │   +   │       │               │       │
+     * │            │       │       │       │       │       │       │   1   │   2   │   3   │   -   │       │               │       │
      * │            │       │       │       │       │       │       │       │       │       │       │       │               │       │
      * ├────────────┴──┬────┴──┬────┴──┬────┴──┬────┴──┬────┴──┬────┴──┬────┴──┬────┴──┬────┴──┬────┴──┬────┴───────┬───────┼───────┤
      * │               │       │       │       │       │       │       │       │       │       │       │            │       │       │
-     * │               │       │       │       │       │       │       │   1   │   2   │   3   │   =   │            │       │       │
+     * │               │       │       │       │       │       │       │   0   │   0   │   .   │   +   │            │       │       │
      * │               │       │       │       │       │       │       │       │       │       │       │            │       │       │
      * ├─────────┬─────┴───┬───┴─────┬─┴───────┴───────┴───────┴───────┴───────┴─────┬─┴───────┼───────┴─┬──┬───────┼───────┼───────┤
      * │         │         │         │                                               │         │         │▒▒│       │       │       │
-     * │         │         │         │                                     0         │    .    │         │▒▒│       │       │       │
+     * │         │         │         │                                     =         │         │         │▒▒│       │       │       │
      * │         │         │         │                                               │         │         │▒▒│       │       │       │
      * └─────────┴─────────┴─────────┴───────────────────────────────────────────────┴─────────┴─────────┴──┴───────┴───────┴───────┘
      */
     [_NUMPAD] = LAYOUT_65_ansi_blocker(
-        _______, _______, _______, _______, _______, _______, _______, _______, KC_PSLS, KC_PAST, KC_PMNS, _______, _______, _______, _______,
-        _______, _______, _______, _______, _______, _______, _______, KC_P7,   KC_P8,   KC_P9,   KC_PPLS, _______, _______, _______, _______,
-        _______, _______, _______, _______, _______, _______, _______, KC_P4,   KC_P5,   KC_P6,   KC_PPLS, _______,          _______, _______,
-        _______, _______, _______, _______, _______, _______, _______, KC_P1,   KC_P2,   KC_P3,   KC_PEQL, _______,          _______, _______,
-        _______, _______, _______,                                     KC_P0,                     KC_PDOT, _______, _______, _______, _______
+        _______, _______, _______, _______, _______, _______, _______, KC_P7,   KC_P8,   KC_P9,   KC_PSLS, _______, _______, _______, _______,
+        _______, _______, _______, _______, _______, _______, _______, KC_P4,   KC_P5,   KC_P6,   KC_PAST, _______, _______, _______, _______,
+        _______, _______, _______, _______, _______, _______, _______, KC_P1,   KC_P2,   KC_P3,   KC_PMNS, _______,          _______, _______,
+        _______, _______, _______, _______, _______, _______, _______, KC_P0,   KC_P0,   KC_PDOT, KC_PPLS, _______,          _______, _______,
+        _______, _______, _______,                                     KC_PEQL,                   _______, _______, _______, _______, _______
     ),
 
     /* Alternate layouts (FN-/ then one of [Q,C,D,W]) */
@@ -190,11 +203,15 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     */
 };
 
+// // Light LEDs 6 to 9 and 12 to 15 red when numpad is active. Hard to ignore!
+// const rgblight_segment_t PROGMEM numpad_layer[] = RGBLIGHT_LAYER_SEGMENTS(
+//     {6, 4, HSV_RED},       // Light 4 LEDs, starting with LED 6
+//     {12, 4, HSV_RED}       // Light 4 LEDs, starting with LED 12
+// );
+
+
 #define MODS_SHIFT  (get_mods() & MOD_MASK_SHIFT)
 #define MODS_CTRL  (get_mods() & MOD_MASK_CTRL)
-
-bool rgbkeyIdle = false; // flag for keyboard idling, nil keys for set
-static uint32_t idle_timer; // custom timer to check if keyboard is idled.
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     static uint32_t key_timer;
@@ -291,32 +308,50 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             }
             return false;
         default:
-             if (rgbkeyIdle) {       // check if the keyboards already idle and if it is, turn it back on as key is pressed.
-                rgbkeyIdle = false;
-                rgb_matrix_set_suspend_state(false);
-                rgb_matrix_enable_noeeprom();
+            #if defined(RGB_MATRIX_ENABLE) && defined(SLEEPMODE_ENABLE)
+            if (record->event.pressed) {
+                if (sleepmode_before_mode == -1) { sleepmode_before_mode = rgb_matrix_get_mode(); }
+                if (sleepmode_before_brightness == -1) { sleepmode_before_brightness = rgb_matrix_get_val(); }
+                if (sleepmode_before_anim_speed == -1) { sleepmode_before_anim_speed = rgb_matrix_get_speed(); }
+
+                if (sleepmode_on == true) {
+                    // rgb_matrix_enable_noeeprom();
+                    rgb_matrix_mode_noeeprom(sleepmode_before_mode);
+                    rgb_matrix_set_speed_noeeprom(sleepmode_before_anim_speed);
+                    rgb_matrix_sethsv_noeeprom(rgb_matrix_get_hue(), rgb_matrix_get_sat(), sleepmode_before_brightness);
+                    sleepmode_on = false;
+                }
+                idle_timer = timer_read();
+                halfmin_counter = 0;
             }
+            #endif
             return true; //Process all other keycodes normally
     }
 }
 
-#define IDLE_TIMER_DURATION 18000000 // how many milliseconds before RGB turns off
 
 void matrix_scan_user(void) {
-// custom idle rbg switch off function
-    if (timer_elapsed(idle_timer) > IDLE_TIMER_DURATION) {
-        idle_timer = 0;
-        timer_clear();
-        rgbkeyIdle = true;
-        rgb_matrix_set_suspend_state(true);
-        rgb_matrix_disable_noeeprom();
-    }
-}
+    #if defined(RGB_MATRIX_ENABLE) && defined(SLEEPMODE_ENABLE)
+        /* idle_timer needs to be set one time */
+        if (idle_timer == 0) idle_timer = timer_read();
 
-void suspend_power_down_user(void) {
-    rgb_matrix_set_suspend_state(true);
-}
+        if ( !sleepmode_on && timer_elapsed(idle_timer) > 30000) {
+            halfmin_counter++;
+            idle_timer = timer_read();
+        }
 
-void suspend_wakeup_init_user(void) {
-    rgb_matrix_set_suspend_state(false);
+        if ( !sleepmode_on && halfmin_counter >= SLEEPMODE_TIMEOUT * 2) {// * 2) {
+            layer_clear();
+            sleepmode_before_anim_speed = rgb_matrix_get_speed();
+            sleepmode_before_brightness = rgb_matrix_get_val();
+            sleepmode_before_mode = rgb_matrix_get_mode();
+            //rgb_matrix_disable_noeeprom();
+
+            rgb_matrix_mode_noeeprom(SLEEPMODE_RGB_MODE);
+            rgb_matrix_set_speed_noeeprom(SLEEPMODE_RGB_ANIMATION_SPEED);
+            rgb_matrix_sethsv_noeeprom(rgb_matrix_get_hue(), rgb_matrix_get_sat(), SLEEPMODE_RGB_VAL);
+            sleepmode_on = true;
+            halfmin_counter = 0;
+        }
+    #endif
 }
