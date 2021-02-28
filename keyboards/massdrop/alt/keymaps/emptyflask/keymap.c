@@ -1,17 +1,21 @@
 #include QMK_KEYBOARD_H
+#include "print.h"
 
 #ifdef RGB_MATRIX_ENABLE
-#ifdef SLEEPMODE_ENABLE
     /* A bunch of vars to keep track of the rgb states
        before sleepmode is turned on */
     static bool sleepmode_on = false;
+    bool sleepmode_feature_enabled = true;
     static uint8_t sleepmode_before_mode = -1;
     static uint8_t sleepmode_before_brightness = -1;
     static uint8_t sleepmode_before_anim_speed = -1;
     static uint8_t halfmin_counter = 0;
     static uint16_t idle_timer = 0;
 #endif
-#endif
+
+extern bool g_suspend_state;
+extern rgb_config_t rgb_matrix_config;
+bool disable_layer_color;
 
 enum my_keycodes {
     U_T_AUTO = SAFE_RANGE, // USB Extra Port Toggle Auto Detect / Always Active
@@ -26,6 +30,8 @@ enum my_keycodes {
     COLEMAK,               // Switch to Colemak layout
     DVORAK,                // Switch to Dvorak layout
     WORKMAN,               // Switch to Workman layout
+    NUMPAD,                // Switch to Numpad layout
+    SLP_TOG,               // Toggle Keyboard Sleep mode
 };
 
 enum my_layers {
@@ -127,7 +133,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         KC_ESC,  KC_F1,   KC_F2,   KC_F3,   KC_F4,   KC_F5,   KC_F6,   KC_F7,   KC_F8,   KC_F9,   KC_F10,  KC_F11,  KC_F12,  KC_DEL,  KC_END,
         _______, RGB_SPD, RGB_VAI, RGB_SPI, RGB_HUI, RGB_SAI, _______, U_T_AUTO,U_T_AGCR,_______, KC_PSCR, KC_SLCK, KC_PAUS, TG_NUMP, KC_MUTE,
         KC_CAPS, RGB_RMOD,RGB_VAD, RGB_MOD, RGB_HUD, RGB_SAD, _______, _______, _______, MD_LOCK, _______, _______,          _______, KC_VOLU,
-        _______, RGB_TOG, _______, _______, _______, MD_BOOT, NK_TOGG, DBG_TOG, _______, _______, OSL_LAY, _______,          KC_PGUP, KC_VOLD,
+        _______, RGB_TOG, SLP_TOG, _______, _______, MD_BOOT, NK_TOGG, DBG_TOG, _______, _______, OSL_LAY, _______,          KC_PGUP, KC_VOLD,
         _______, _______, _______,                            HK_COSL,                            _______, _______, KC_HOME, KC_PGDN, KC_END
     ),
 
@@ -307,9 +313,17 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
               }
             }
             return false;
-        default:
-            #if defined(RGB_MATRIX_ENABLE) && defined(SLEEPMODE_ENABLE)
+        case SLP_TOG:
+            #if defined(RGB_MATRIX_ENABLE)
             if (record->event.pressed) {
+                sleepmode_feature_enabled = !sleepmode_feature_enabled;
+                uprintf("%d", sleepmode_feature_enabled);
+            }
+            return false;
+            #endif
+        default:
+            #if defined(RGB_MATRIX_ENABLE)
+            if (record->event.pressed && sleepmode_feature_enabled) {
                 if (sleepmode_before_mode == -1) { sleepmode_before_mode = rgb_matrix_get_mode(); }
                 if (sleepmode_before_brightness == -1) { sleepmode_before_brightness = rgb_matrix_get_val(); }
                 if (sleepmode_before_anim_speed == -1) { sleepmode_before_anim_speed = rgb_matrix_get_speed(); }
@@ -331,21 +345,21 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 
 
 void matrix_scan_user(void) {
-    #if defined(RGB_MATRIX_ENABLE) && defined(SLEEPMODE_ENABLE)
+    #if defined(RGB_MATRIX_ENABLE)
+    if (sleepmode_feature_enabled) {
         /* idle_timer needs to be set one time */
         if (idle_timer == 0) idle_timer = timer_read();
 
-        if ( !sleepmode_on && timer_elapsed(idle_timer) > 30000) {
+        if (!sleepmode_on && timer_elapsed(idle_timer) > 30000) {
             halfmin_counter++;
             idle_timer = timer_read();
         }
-
-        if ( !sleepmode_on && halfmin_counter >= SLEEPMODE_TIMEOUT * 2) {// * 2) {
+    
+        if (!sleepmode_on && halfmin_counter >= SLEEPMODE_TIMEOUT * 2) {// * 2) {
             layer_clear();
             sleepmode_before_anim_speed = rgb_matrix_get_speed();
             sleepmode_before_brightness = rgb_matrix_get_val();
             sleepmode_before_mode = rgb_matrix_get_mode();
-            //rgb_matrix_disable_noeeprom();
 
             rgb_matrix_mode_noeeprom(SLEEPMODE_RGB_MODE);
             rgb_matrix_set_speed_noeeprom(SLEEPMODE_RGB_ANIMATION_SPEED);
@@ -353,5 +367,32 @@ void matrix_scan_user(void) {
             sleepmode_on = true;
             halfmin_counter = 0;
         }
+    }
     #endif
+}
+
+void set_layer_color(int layer) {
+    if (layer != _NUMPAD && layer != _FUNCTION) {
+        return;
+    }
+
+    for (int i = 0; i < DRIVER_LED_TOTAL; i++) {
+        if (layer == _NUMPAD) {
+            if ((i >= 7 && i <= 10) || (i >= 22 && i <= 25) ||
+                (i >= 37 && i <= 40) || (i >= 51 && i <= 54) || i == 61) {
+                
+            } else {
+                rgb_matrix_set_color(i, 0, 0, 0);
+            }
+        }
+    }
+}
+
+void rgb_matrix_indicators_user(void) {
+    if (g_suspend_state || disable_layer_color || 
+        rgb_matrix_get_flags() == LED_FLAG_NONE ||
+        rgb_matrix_get_flags() == LED_FLAG_UNDERGLOW) {
+            return;
+    }
+    set_layer_color(get_highest_layer(layer_state));
 }

@@ -1,12 +1,12 @@
 #pragma once
+#include <stdbool.h>
 
 #define ONESHOT_TIMEOUT 3000
 
 /*****************************
  * SLEEPMODE CONFIG
  *****************************/
-#define SLEEPMODE_ENABLE
-
+extern bool sleepmode_feature_enabled;
 /* How long the backlight should stay on without any interaction before turning off. */
 #define SLEEPMODE_TIMEOUT 10  // in minutes
 
@@ -50,7 +50,7 @@
 
 // ======= Requires RGB_MATRIX_FRAMEBUFFER_EFFECTS =============================================================
 #define DISABLE_RGB_MATRIX_TYPING_HEATMAP                // How hot is your WPM!
-#define DISABLE_RGB_MATRIX_DIGITAL_RAIN                  	// That famous computer simulation
+#define DISABLE_RGB_MATRIX_DIGITAL_RAIN                  // That famous computer simulation
 
 // ======= RGB_MATRIX_KEYPRESSES OR RGB_MATRIX_KEYRELEASES =====================================================
 #define DISABLE_RGB_MATRIX_SOLID_REACTIVE                // Static single hue, pulses keys hit to shifted hue then fades to current hue
