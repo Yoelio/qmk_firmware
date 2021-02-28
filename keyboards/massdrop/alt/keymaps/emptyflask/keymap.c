@@ -31,7 +31,9 @@ enum my_keycodes {
     DVORAK,                // Switch to Dvorak layout
     WORKMAN,               // Switch to Workman layout
     NUMPAD,                // Switch to Numpad layout
-    SLP_TOG,               // Toggle Keyboard Sleep mode
+    SLP_TOG,               // Toggle Keyboard Sleep Mode feature
+    SLEEP,                 // Enter Sleep mode
+
 };
 
 enum my_layers {
@@ -120,9 +122,9 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
      * │  CapsLock  │  Mode │  Val  │  Mode │  Hue  │  Sat  │       │       │       │ Lock  │       │       │               │ Vol+  │
      * │            │   -   │   -   │   +   │   -   │   -   │       │       │       │       │       │       │               │       │
      * ├────────────┴──┬────┴──┬────┴──┬────┴──┬────┴──┬────┴──┬────┴──┬────┴──┬────┴──┬────┴──┬────┴──┬────┴───────┬───────┼───────┤
-     * │               │  RGB  │       │       │       │       │ 6KRO/ │       │       │       │       │            │       │       │
-     * │               │ On/Off│       │       │       │Restart│ NKRO  │ Debug │       │       │ Layout│            │ PgUp  │ Vol-  │
-     * │               │       │       │       │       │       │       │       │       │       │       │            │       │       │
+     * │               │  RGB  │ SLEEP │ Enter │       │       │ 6KRO/ │       │       │       │       │            │       │       │
+     * │               │ On/Off│feature│ SLEEP │       │Restart│ NKRO  │ Debug │       │       │ Layout│            │ PgUp  │ Vol-  │
+     * │               │       │ On/Off│  mode │       │       │       │       │       │       │       │            │       │       │
      * ├─────────┬─────┴───┬───┴─────┬─┴───────┴───────┴───────┴───────┴───────┴─────┬─┴───────┼───────┴─┬──┬───────┼───────┼───────┤
      * │         │         │         │                                               │         │         │▒▒│       │       │       │
      * │         │         │         │               Clear modifiers                 │         │         │▒▒│ Home  │ PgDn  │  End  │
@@ -133,7 +135,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         KC_ESC,  KC_F1,   KC_F2,   KC_F3,   KC_F4,   KC_F5,   KC_F6,   KC_F7,   KC_F8,   KC_F9,   KC_F10,  KC_F11,  KC_F12,  KC_DEL,  KC_END,
         _______, RGB_SPD, RGB_VAI, RGB_SPI, RGB_HUI, RGB_SAI, _______, U_T_AUTO,U_T_AGCR,_______, KC_PSCR, KC_SLCK, KC_PAUS, TG_NUMP, KC_MUTE,
         KC_CAPS, RGB_RMOD,RGB_VAD, RGB_MOD, RGB_HUD, RGB_SAD, _______, _______, _______, MD_LOCK, _______, _______,          _______, KC_VOLU,
-        _______, RGB_TOG, SLP_TOG, _______, _______, MD_BOOT, NK_TOGG, DBG_TOG, _______, _______, OSL_LAY, _______,          KC_PGUP, KC_VOLD,
+        _______, RGB_TOG, SLP_TOG, SLEEP,   _______, MD_BOOT, NK_TOGG, DBG_TOG, _______, _______, OSL_LAY, _______,          KC_PGUP, KC_VOLD,
         _______, _______, _______,                            HK_COSL,                            _______, _______, KC_HOME, KC_PGDN, KC_END
     ),
 
@@ -317,10 +319,17 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             #if defined(RGB_MATRIX_ENABLE)
             if (record->event.pressed) {
                 sleepmode_feature_enabled = !sleepmode_feature_enabled;
-                uprintf("%d", sleepmode_feature_enabled);
+                dprintf("%d", sleepmode_feature_enabled);
             }
-            return false;
             #endif
+            return false;
+        case SLEEP:
+            #if defined(RGB_MATRIX_ENABLE)
+            if (record->event.pressed) {
+                halfmin_counter = INT8_MAX;
+            }
+            #endif
+            return false;
         default:
             #if defined(RGB_MATRIX_ENABLE)
             if (record->event.pressed && sleepmode_feature_enabled) {
