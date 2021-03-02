@@ -21,6 +21,8 @@ extern bool sleepmode_feature_enabled;
     #define SLEEPMODE_RGB_VAL 10
 #endif
 
+// #define RGBLIGHT_LAYERS // required for status indicators (i.e. caps lock)
+// #define RGBLED_NUM 16
 /************************************************
  *            DISABLED ANIMATIONS               *
  * **********************************************/

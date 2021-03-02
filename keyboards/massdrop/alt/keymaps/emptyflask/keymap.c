@@ -36,6 +36,17 @@ enum my_keycodes {
 
 };
 
+// // Light LEDs 6 to 9 and 12 to 15 red when caps lock is active. Hard to ignore!
+// const rgblight_segment_t PROGMEM capslock_layer[] = RGBLIGHT_LAYER_SEGMENTS(
+//     {6, 4, HSV_RED},       // Light 4 LEDs, starting with LED 6
+//     {12, 4, HSV_RED}       // Light 4 LEDs, starting with LED 12
+// );
+
+// // Now define the array of layers. Later layers take precedence
+// const rgblight_segment_t* const PROGMEM my_rgb_layers[] = RGBLIGHT_LAYERS_LIST(
+//     capslock_layer
+// );
+
 enum my_layers {
     _QWERTY = 0,
     _COLEMAK,
@@ -123,8 +134,8 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
      * │            │   -   │   -   │   +   │   -   │   -   │       │       │       │       │       │       │               │       │
      * ├────────────┴──┬────┴──┬────┴──┬────┴──┬────┴──┬────┴──┬────┴──┬────┴──┬────┴──┬────┴──┬────┴──┬────┴───────┬───────┼───────┤
      * │               │  RGB  │ SLEEP │ Enter │       │       │ 6KRO/ │       │       │       │       │            │       │       │
-     * │               │ On/Off│feature│ SLEEP │       │Restart│ NKRO  │ Debug │       │       │ Layout│            │ PgUp  │ Vol-  │
-     * │               │       │ On/Off│  mode │       │       │       │       │       │       │       │            │       │       │
+     * │               │ On/Off│feature│ SLEEP │       │Restart│ NKRO  │ Debug │       │       │ Layout│ Screenshot │ PgUp  │ Vol-  │
+     * │               │       │ On/Off│  mode │       │       │       │       │       │       │       │   (Mac)    │       │       │
      * ├─────────┬─────┴───┬───┴─────┬─┴───────┴───────┴───────┴───────┴───────┴─────┬─┴───────┼───────┴─┬──┬───────┼───────┼───────┤
      * │         │         │         │                                               │         │         │▒▒│       │       │       │
      * │         │         │         │               Clear modifiers                 │         │         │▒▒│ Home  │ PgDn  │  End  │
@@ -135,7 +146,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         KC_ESC,  KC_F1,   KC_F2,   KC_F3,   KC_F4,   KC_F5,   KC_F6,   KC_F7,   KC_F8,   KC_F9,   KC_F10,  KC_F11,  KC_F12,  KC_DEL,  KC_END,
         _______, RGB_SPD, RGB_VAI, RGB_SPI, RGB_HUI, RGB_SAI, _______, U_T_AUTO,U_T_AGCR,_______, KC_PSCR, KC_SLCK, KC_PAUS, TG_NUMP, KC_MUTE,
         KC_CAPS, RGB_RMOD,RGB_VAD, RGB_MOD, RGB_HUD, RGB_SAD, _______, _______, _______, MD_LOCK, _______, _______,          _______, KC_VOLU,
-        _______, RGB_TOG, SLP_TOG, SLEEP,   _______, MD_BOOT, NK_TOGG, DBG_TOG, _______, _______, OSL_LAY, _______,          KC_PGUP, KC_VOLD,
+        _______, RGB_TOG, SLP_TOG, SLEEP,   _______, MD_BOOT, NK_TOGG, DBG_TOG, _______, _______, OSL_LAY, SGUI(KC_5),       KC_PGUP, KC_VOLD,
         _______, _______, _______,                            HK_COSL,                            _______, _______, KC_HOME, KC_PGDN, KC_END
     ),
 
@@ -405,3 +416,13 @@ void rgb_matrix_indicators_user(void) {
     }
     set_layer_color(get_highest_layer(layer_state));
 }
+
+// void keyboard_post_init_user(void) {
+//     // Enable the LED layers
+//     rgblight_layers = my_rgb_layers;
+// }
+
+// bool led_update_user(led_t led_state) {
+//     rgblight_set_layer_state(0, led_state.caps_lock);
+//     return true;
+// }
