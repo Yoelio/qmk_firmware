@@ -442,3 +442,7 @@ bool led_update_user(led_t led_state) {
     }
     return true;
 }
+
+void keyboard_post_init_user(void) {
+    rgb_matrix_set_flags(LED_FLAG_KEYLIGHT);
+}
