@@ -1,5 +1,6 @@
 #include QMK_KEYBOARD_H
 #include "print.h"
+#include "config.h"
 
 #ifdef RGB_MATRIX_ENABLE
     /* A bunch of vars to keep track of the rgb states
@@ -63,7 +64,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
      * │          │       │       │       │       │       │       │       │       │       │       │       │       │         │       │
      * ├──────────┴─┬─────┴─┬─────┴─┬─────┴─┬─────┴─┬─────┴─┬─────┴─┬─────┴─┬─────┴─┬─────┴─┬─────┴─┬─────┴─┬─────┴─────────┼───────┤
      * │            │       │       │       │       │       │       │       │       │       │       │       │               │       │
-     * │  Ctrl/Esc  │   A   │   S   │   D   │   F   │   G   │   H   │   J   │   K   │   L   │   ;   │   '   │    Return     │ PgUp  │
+     * │  Func/Esc  │   A   │   S   │   D   │   F   │   G   │   H   │   J   │   K   │   L   │   ;   │   '   │    Return     │ PgUp  │
      * │            │       │       │       │       │       │       │       │       │       │       │       │               │       │
      * ├────────────┴──┬────┴──┬────┴──┬────┴──┬────┴──┬────┴──┬────┴──┬────┴──┬────┴──┬────┴──┬────┴──┬────┴───────┬───────┼───────┤
      * │               │       │       │       │       │       │       │       │       │       │       │            │       │       │
@@ -309,15 +310,16 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             }
             return false;
         case SLP_TOG:
-            #if defined(RGB_MATRIX_ENABLE)
+            #ifdef RGB_MATRIX_ENABLE
             if (record->event.pressed) {
                 sleepmode_feature_enabled = !sleepmode_feature_enabled;
+
                 dprintf("%d", sleepmode_feature_enabled);
             }
             #endif
             return false;
         case SLEEP:
-            #if defined(RGB_MATRIX_ENABLE)
+            #ifdef RGB_MATRIX_ENABLE
             if (record->event.pressed) {
                 halfmin_counter = INT8_MAX;
             }
@@ -327,12 +329,14 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         case RGB_HUD:
         case RGB_SAI:
         case RGB_SAD:
+        case RGB_VAI:
+        case RGB_VAD:
             if (record -> event.pressed) {
                 dprintf("%d,%d\n", rgb_matrix_get_hue(), rgb_matrix_get_sat());
             }
             return true;
         default:
-            #if defined(RGB_MATRIX_ENABLE)
+            #ifdef RGB_MATRIX_ENABLE
             if (record->event.pressed && sleepmode_feature_enabled) {
                 if (sleepmode_before_mode == -1) { sleepmode_before_mode = rgb_matrix_get_mode(); }
                 if (sleepmode_before_brightness == -1) { sleepmode_before_brightness = rgb_matrix_get_val(); }
@@ -355,7 +359,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 
 
 void matrix_scan_user(void) {
-    #if defined(RGB_MATRIX_ENABLE)
+    #ifdef RGB_MATRIX_ENABLE
     if (sleepmode_feature_enabled) {
         /* idle_timer needs to be set one time */
         if (idle_timer == 0) idle_timer = timer_read();
@@ -407,35 +411,32 @@ void rgb_matrix_indicators_user(void) {
     set_layer_color(get_highest_layer(layer_state));
 }
 
-// void keyboard_post_init_user(void) {
-//     // Enable the LED layers
-//     rgblight_layers = my_rgb_layers;
-// }
-
 bool led_update_user(led_t led_state) {
     static uint8_t caps_state = 0;
     static uint8_t prev_flag;
     static uint8_t prev_mode;
-    static uint8_t prev_saturation;
-    static uint8_t prev_hue;
+    static HSV prev_hsv;
 
     if (caps_state != led_state.caps_lock) {
-        if (led_state.caps_lock) {
+        if (led_state.caps_lock) { // entering caps lock
             prev_flag = rgb_matrix_get_flags();
             prev_mode = rgb_matrix_get_mode();
-            prev_saturation = rgb_matrix_get_sat();
-            prev_hue = rgb_matrix_get_hue();
+            prev_hsv = rgb_matrix_get_hsv();
 
             rgb_matrix_set_flags(LED_FLAG_UNDERGLOW);
             rgb_matrix_mode(CAPS_LOCK_ANIMATION);
+            #ifdef CAPS_LOCK_HSV
+            rgb_matrix_sethsv(CAPS_LOCK_HSV);
+            #else
             rgb_matrix_sethsv(CAPS_LOCK_HUE, CAPS_LOCK_SAT, CAPS_LOCK_VAL);
-        } else {
+            #endif
+        } else { // leaving caps lock
             rgb_matrix_set_flags(prev_flag);
             if (prev_flag == LED_FLAG_NONE || prev_flag == LED_FLAG_KEYLIGHT) {
                 rgb_matrix_set_color_all(0, 0, 0);
             }
             rgb_matrix_mode(prev_mode);
-            rgb_matrix_sethsv(prev_hue, prev_saturation, rgb_matrix_get_val());
+            rgb_matrix_sethsv(prev_hsv.h, prev_hsv.s, prev_hsv.v);
         }
         caps_state = led_state.caps_lock;
     }

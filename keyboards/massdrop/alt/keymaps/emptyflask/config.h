@@ -25,9 +25,13 @@ extern bool sleepmode_feature_enabled;
  * caps lock config
  *****************************/
 #define CAPS_LOCK_ANIMATION RGB_MATRIX_BREATHING
-#define CAPS_LOCK_HUE 170
-#define CAPS_LOCK_SAT 255
-#define CAPS_LOCK_VAL 255
+#define CAPS_LOCK_HSV HSV_TEAL
+
+#ifndef CAPS_LOCK_HSV 
+  #define CAPS_LOCK_HUE 170
+  #define CAPS_LOCK_SAT 255
+  #define CAPS_LOCK_VAL 255
+#endif
 
 /************************************************
  *            DISABLED ANIMATIONS               *
@@ -75,6 +79,6 @@ extern bool sleepmode_feature_enabled;
 #define DISABLE_RGB_MATRIX_SOLID_MULTISPLASH             // Hue & value pulse away from multiple key hits then fades value out
 
 #define FORCE_NKRO // Turn on NKRO by default
-#define RGB_MATRIX_STARTUP_MODE RGB_MATRIX_SOLID_COLOR // RGB mode on startup
-#define RGB_MATRIX_STARTUP_SAT 136                       // white LEDs
-#define RGB_MATRIX_STARTUP_HUE 130
+#define RGB_MATRIX_STARTUP_MODE RGB_MATRIX_SOLID_COLOR   // RGB mode on startup
+#define RGB_MATRIX_STARTUP_HUE 130                       // white-ish LEDs
+#define RGB_MATRIX_STARTUP_SAT 136
