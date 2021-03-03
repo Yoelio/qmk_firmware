@@ -35,17 +35,6 @@ enum my_keycodes {
     SLEEP,                 // Enter Sleep mode
 };
 
-// // Light LEDs 6 to 9 and 12 to 15 red when caps lock is active. Hard to ignore!
-// const rgblight_segment_t PROGMEM capslock_layer[] = RGBLIGHT_LAYER_SEGMENTS(
-//     {6, 4, HSV_RED},       // Light 4 LEDs, starting with LED 6
-//     {12, 4, HSV_RED}       // Light 4 LEDs, starting with LED 12
-// );
-
-// // Now define the array of layers. Later layers take precedence
-// const rgblight_segment_t* const PROGMEM my_rgb_layers[] = RGBLIGHT_LAYERS_LIST(
-//     capslock_layer
-// );
-
 enum my_layers {
     _QWERTY = 0,
     _COLEMAK,
@@ -56,7 +45,7 @@ enum my_layers {
     _LAYOUTS,
 };
 
-#define FUNC_ESC  LT(_FUNCTION, KC_ESC)     // Tap for ESC, hold for CTRL
+#define FUNC_ESC  LT(_FUNCTION, KC_ESC)     // Tap for ESC, hold for function layer
 #define MD_LOCK  LCTL(LGUI(KC_Q))           // MacOS lock screen shortcut
 #define MO_FUNC  MO(_FUNCTION)              // Hold for function layer
 #define TG_NUMP  TG(_NUMPAD)                // Toggle numpad layer
@@ -221,12 +210,6 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     */
 };
 
-// // Light LEDs 6 to 9 and 12 to 15 red when numpad is active. Hard to ignore!
-// const rgblight_segment_t PROGMEM numpad_layer[] = RGBLIGHT_LAYER_SEGMENTS(
-//     {6, 4, HSV_RED},       // Light 4 LEDs, starting with LED 6
-//     {12, 4, HSV_RED}       // Light 4 LEDs, starting with LED 12
-// );
-
 
 #define MODS_SHIFT  (get_mods() & MOD_MASK_SHIFT)
 #define MODS_CTRL  (get_mods() & MOD_MASK_CTRL)
@@ -340,6 +323,14 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             }
             #endif
             return false;
+        case RGB_HUI:
+        case RGB_HUD:
+        case RGB_SAI:
+        case RGB_SAD:
+            if (record -> event.pressed) {
+                dprintf("%d,%d\n", rgb_matrix_get_hue(), rgb_matrix_get_sat());
+            }
+            return true;
         default:
             #if defined(RGB_MATRIX_ENABLE)
             if (record->event.pressed && sleepmode_feature_enabled) {
@@ -421,7 +412,32 @@ void rgb_matrix_indicators_user(void) {
 //     rgblight_layers = my_rgb_layers;
 // }
 
-// bool led_update_user(led_t led_state) {
-//     rgblight_set_layer_state(0, led_state.caps_lock);
-//     return true;
-// }
+bool led_update_user(led_t led_state) {
+    static uint8_t caps_state = 0;
+    static uint8_t prev_flag;
+    static uint8_t prev_mode;
+    static uint8_t prev_saturation;
+    static uint8_t prev_hue;
+
+    if (caps_state != led_state.caps_lock) {
+        if (led_state.caps_lock) {
+            prev_flag = rgb_matrix_get_flags();
+            prev_mode = rgb_matrix_get_mode();
+            prev_saturation = rgb_matrix_get_sat();
+            prev_hue = rgb_matrix_get_hue();
+
+            rgb_matrix_set_flags(LED_FLAG_UNDERGLOW);
+            rgb_matrix_mode(CAPS_LOCK_ANIMATION);
+            rgb_matrix_sethsv(CAPS_LOCK_HUE, CAPS_LOCK_SAT, CAPS_LOCK_VAL);
+        } else {
+            rgb_matrix_set_flags(prev_flag);
+            if (prev_flag == LED_FLAG_NONE || prev_flag == LED_FLAG_KEYLIGHT) {
+                rgb_matrix_set_color_all(0, 0, 0);
+            }
+            rgb_matrix_mode(prev_mode);
+            rgb_matrix_sethsv(prev_hue, prev_saturation, rgb_matrix_get_val());
+        }
+        caps_state = led_state.caps_lock;
+    }
+    return true;
+}

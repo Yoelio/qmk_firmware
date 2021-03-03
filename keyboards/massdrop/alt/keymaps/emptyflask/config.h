@@ -18,18 +18,24 @@ extern bool sleepmode_feature_enabled;
 /* The desired brightness when in "sleep mode", 0 if sleep mode is RGB_MATRIX_NONE */
   #define SLEEPMODE_RGB_VAL 0
 #else
-    #define SLEEPMODE_RGB_VAL 10
+  #define SLEEPMODE_RGB_VAL 10
 #endif
 
-// #define RGBLIGHT_LAYERS // required for status indicators (i.e. caps lock)
-// #define RGBLED_NUM 16
+/*****************************
+ * caps lock config
+ *****************************/
+#define CAPS_LOCK_ANIMATION RGB_MATRIX_BREATHING
+#define CAPS_LOCK_HUE 170
+#define CAPS_LOCK_SAT 255
+#define CAPS_LOCK_VAL 255
+
 /************************************************
  *            DISABLED ANIMATIONS               *
  * **********************************************/
-#define DISABLE_RGB_MATRIX_SOLID_COLOR                   // Static single hue, no speed support
+// #define DISABLE_RGB_MATRIX_SOLID_COLOR                   // Static single hue, no speed support
 #define DISABLE_RGB_MATRIX_ALPHAS_MODS                   // Static dual hue, speed is hue for secondary hue
 #define DISABLE_RGB_MATRIX_GRADIENT_UP_DOWN              // Static gradient top to bottom, speed controls how much gradient changes
-#define DISABLE_RGB_MATRIX_BREATHING                     // Single hue brightness cycling animation
+// #define DISABLE_RGB_MATRIX_BREATHING                     // Single hue brightness cycling animation
 #define DISABLE_RGB_MATRIX_BAND_SAT                      // Single hue band fading saturation scrolling left to right
 #define DISABLE_RGB_MATRIX_BAND_VAL                      // Single hue band fading brightness scrolling left to right
 #define DISABLE_RGB_MATRIX_BAND_PINWHEEL_SAT             // Single hue 3 blade spinning pinwheel fades saturation
@@ -69,4 +75,6 @@ extern bool sleepmode_feature_enabled;
 #define DISABLE_RGB_MATRIX_SOLID_MULTISPLASH             // Hue & value pulse away from multiple key hits then fades value out
 
 #define FORCE_NKRO // Turn on NKRO by default
-#define RGB_MATRIX_STARTUP_MODE RGB_MATRIX_JELLYBEAN_RAINDROPS // RGB mode on startup
+#define RGB_MATRIX_STARTUP_MODE RGB_MATRIX_SOLID_COLOR // RGB mode on startup
+#define RGB_MATRIX_STARTUP_SAT 136                       // white LEDs
+#define RGB_MATRIX_STARTUP_HUE 130
