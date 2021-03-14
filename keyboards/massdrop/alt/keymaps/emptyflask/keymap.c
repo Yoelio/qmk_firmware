@@ -123,7 +123,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
      * │            │   -   │   -   │   +   │   -   │   -   │       │       │       │       │       │       │               │       │
      * ├────────────┴──┬────┴──┬────┴──┬────┴──┬────┴──┬────┴──┬────┴──┬────┴──┬────┴──┬────┴──┬────┴──┬────┴───────┬───────┼───────┤
      * │               │  RGB  │ SLEEP │ Enter │       │       │ 6KRO/ │       │       │       │       │            │       │       │
-     * │               │ On/Off│feature│ SLEEP │       │Restart│ NKRO  │ Debug │       │       │ Layout│ Screenshot │ Vol+  │  PgUp │
+     * │               │ On/Off│feature│ SLEEP │       │Restart│ NKRO  │ Debug │       │       │ Layout│ Screenshot │ Vol+  │ PgDown│
      * │               │       │ On/Off│  mode │       │       │       │       │       │       │       │   (Mac)    │       │       │
      * ├─────────┬─────┴───┬───┴─────┬─┴───────┴───────┴───────┴───────┴───────┴─────┬─┴───────┼───────┴─┬──┬───────┼───────┼───────┤
      * │         │         │         │                                               │         │         │▒▒│       │       │       │
